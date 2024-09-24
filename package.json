@@ -1,11 +1,27 @@
 {
-  "name": "option-ts",
-  "module": "index.ts",
-  "type": "module",
-  "devDependencies": {
-    "@types/bun": "latest"
+  "name": "@kolharsam/option-ts",
+  "version": "0.0.1",
+  "description": "an opinionated option type library for typescript",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
+  "keywords": [
+    "option types",
+    "option",
+    "some",
+    "none",
+    "result",
+    "error",
+    "functional programming",
+    "error handling"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "22.6.1",
+    "typescript": "5.6.2"
   }
 }
