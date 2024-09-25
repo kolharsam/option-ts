@@ -1,7 +1,5 @@
 # option-ts
 
-# TypeScript Option/Result Library
-
 This library provides Rust-inspired `Option` and `Result` types for TypeScript, enabling more robust error handling and null safety in your TypeScript projects.
 
 ## Installation
