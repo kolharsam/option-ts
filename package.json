@@ -7,7 +7,8 @@
   "scripts": {
     "build": "tsc",
     "test": "jest",
-    "clean-build": "rm -rf ./dist && tsc"
+    "clean-build": "rm -rf ./dist && tsc",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [
     "option types",
