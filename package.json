@@ -1,6 +1,6 @@
 {
   "name": "@kolharsam/option-ts",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "an opinionated option type library for typescript",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
