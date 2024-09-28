@@ -6,7 +6,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "clean-build": "rm -rf ./dist && tsc"
   },
   "keywords": [
     "option types",
@@ -18,7 +19,7 @@
     "functional programming",
     "error handling"
   ],
-  "author": "",
+  "author": "kolharsam",
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "29.5.13",
