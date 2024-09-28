@@ -21,7 +21,7 @@ interface OptionFunctions<T> {
   unwrap: () => T;
   unwrapOr: (def: T) => T;
   unwrapOrElse: (fn: () => T) => T;
-  mapOr: <U>(def: U, fn:(val: T) => U) => U;
+  mapOr: <U>(def: U, fn: (val: T) => U) => U;
   mapOrElse: <U>(def: () => U, fn: (val: T) => U) => U;
   okOr: <E>(err: E) => Result<T, E>;
   okOrElse: <E>(fn: () => E) => Result<T, E>;
@@ -31,7 +31,10 @@ interface OptionFunctions<T> {
   orElse: (optFn: () => Option<T>) => Option<T>;
   xor: (optionB: Option<T>) => Option<T>;
   zip: <U>(other: Option<U>) => Option<[T, U]>;
-  zipWith: <U,V>(other: Option<U>, fn: (current: T, other: U) => V) => Option<V>;
+  zipWith: <U, V>(
+    other: Option<U>,
+    fn: (current: T, other: U) => V
+  ) => Option<V>;
 }
 
 class OptionClass<T> implements OptionFunctions<T> {
@@ -111,14 +114,14 @@ class OptionClass<T> implements OptionFunctions<T> {
     return this.value;
   }
 
-  unwrap():T {
+  unwrap(): T {
     if (this.isNone()) {
       throw new ValueNotFoundError();
     }
     return this.value;
   }
 
-  unwrapOr(def:T): T {
+  unwrapOr(def: T): T {
     if (this.isNone()) {
       return def;
     }
@@ -153,7 +156,7 @@ class OptionClass<T> implements OptionFunctions<T> {
     return Ok(this.value);
   }
 
-  okOrElse<E>(fn: () => E): Result<T,E> {
+  okOrElse<E>(fn: () => E): Result<T, E> {
     if (this.isNone()) {
       return Err(fn());
     }
@@ -179,13 +182,13 @@ class OptionClass<T> implements OptionFunctions<T> {
       return optionB;
     }
     return Some(this.value);
-  };
+  }
 
   orElse(optFn: () => Option<T>): Option<T> {
     if (this.isNone()) {
       return optFn();
     }
-    return Some(this.value)
+    return Some(this.value);
   }
 
   xor(optionB: Option<T>): Option<T> {
@@ -232,18 +235,20 @@ export const unzip = <T, U>(option: Option<[T, U]>): [Option<T>, Option<U>] => {
   if (option.isNone()) {
     return [None(), None()];
   }
-  return [Some(option.value[0]), Some(option.value[1])]
+  return [Some(option.value[0]), Some(option.value[1])];
 };
 
 // transpose helps to turn an Option<Result<T, E>> into an Result<Option<T>, E>
-export const transpose = <T,E>(option: Option<Result<T, E>>): Result<Option<T>, E> => {
+export const transpose = <T, E>(
+  option: Option<Result<T, E>>
+): Result<Option<T>, E> => {
   if (option.isNone()) {
     return Ok(None());
   }
   if (option.value.isOk()) {
     return Ok(Some(option.value.data));
   }
-   return Err(option.value.err);
+  return Err(option.value.err);
 };
 
 // flatten helps remove one layer of Option at a time

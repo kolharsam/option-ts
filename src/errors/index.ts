@@ -1,5 +1,3 @@
 import ValueNotFoundError from "./notfound";
 
-export {
-    ValueNotFoundError
-};
+export { ValueNotFoundError };
