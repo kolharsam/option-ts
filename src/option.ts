@@ -95,9 +95,9 @@ class OptionClass<T> implements OptionFunctions<T> {
 
   isNoneOr(fn: (val: T) => boolean): boolean {
     if (this.isSome()) {
-      return false;
+      return fn(this.value);
     }
-    return fn(this.value);
+    return true;
   }
 
   asSlice(): T[] | [] {
