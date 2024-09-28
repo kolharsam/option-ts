@@ -68,6 +68,24 @@ console.log(safeDiv(10, 0).toErr().get()); // "Division by zero"
 - `inspect(fn: (val: T) => void): Option<T>`
 - `isSome(): boolean`
 - `isNone(): boolean`
+- `isSomeAnd(fn: (val: T) => boolean): boolean`
+- `isNoneOr(fn: (val: T) => boolean): boolean`
+- `asSlice(): T[] | []`
+- `expect(msg: string): T`
+- `unwrap(): T`
+- `unwrapOr(def: T): T`
+- `unwrapOrElse(fn: () => T): T`
+- `mapOr<U>(def: U, fn: (val: T) => U): U`
+- `mapOrElse<U>(def: () => U, fn: (val: T) => U): U`
+- `okOr<E>(err: E): Result<T, E>`
+- `okOrElse<E>(fn: () => E): Result<T, E>`
+- `and<U>(optionB: Option<U>): Option<U>`
+- `andThen<U>(fn: (val: T) => Option<U>): Option<U>`
+- `or(optionB: Option<T>): Option<T>`
+- `orElse(optFn: () => Option<T>): Option<T>`
+- `xor(optionB: Option<T>): Option<T>`
+- `zip<U>(other: Option<U>): Option<[T, U]>`
+- `zipWith<U, V>(other: Option<U>, fn: (current: T, other: U) => V): Option<V>`
 
 ### Result<T, E>
 
@@ -82,6 +100,12 @@ console.log(safeDiv(10, 0).toErr().get()); // "Division by zero"
 - `inspect(fn: (val: T) => void): Result<T, E>`
 - `inspectErr(fn: (val: E) => void): Result<T, E>`
 - `map<U>(fn: (val: T) => U): Result<U, E>`
+
+### Utility Functions
+
+- `unzip<T, U>(option: Option<[T, U]>): [Option<T>, Option<U>]`
+- `transpose<T, E>(option: Option<Result<T, E>>): Result<Option<T>, E>`
+- `flatten<T>(option: Option<Option<T>>): Option<T>`
 
 ## Contributing
 
