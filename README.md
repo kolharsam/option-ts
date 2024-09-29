@@ -99,13 +99,28 @@ console.log(safeDiv(10, 0).toErr().get()); // "Division by zero"
 - `toErr(): Option<E>`
 - `inspect(fn: (val: T) => void): Result<T, E>`
 - `inspectErr(fn: (val: E) => void): Result<T, E>`
-- `map<U>(fn: (val: T) => U): Result<U, E>`
+- `map<V>(f: (val: T) => V): Result<V, E>`
+- `mapOr<V>(def: V, f: (val: T) => V): V`
+- `mapErr<F>(fn: (err: E) => F): Result<T, F>`
+- `expect(msg: string): T`
+- `unwrap(): T`
+- `unwrapOrDefault(def: T): T`
+- `expectErr(msg: string): E`
+- `unwrapErr(): E`
+- `and<V>(res: Result<V, E>): Result<V, E>`
+- `andThen<V>(op: (val: T) => Result<V, E>): Result<V, E>`
+- `or<F>(res: Result<T, F>): Result<T, F>`
+- `orElse<F>(op: (err: E) => Result<T, F>): Result<T, F>`
+- `unwrapOr(def: T): T`
+- `unwrapOrElse(op: (err: E) => T): T`
 
 ### Utility Functions
 
 - `unzip<T, U>(option: Option<[T, U]>): [Option<T>, Option<U>]`
 - `transpose<T, E>(option: Option<Result<T, E>>): Result<Option<T>, E>`
 - `flatten<T>(option: Option<Option<T>>): Option<T>`
+- `transposeResult<T, E>(res: Result<Option<T>, E>): Option<Result<T, E>>`
+- `flattenResult<T, E>(res: Result<Result<T, E>, E>): Result<T, E>`
 
 ## Contributing
 
