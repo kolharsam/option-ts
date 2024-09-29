@@ -1,4 +1,4 @@
-import { Ok, Err } from "../src";
+import { Ok, Err, transposeResult, flattenResult, Some, None } from "../src";
 
 describe("Result", () => {
   test("Ok", () => {
@@ -145,5 +145,157 @@ describe("Result", () => {
       .map((x) => x.toString());
     expect(errResult.isErr()).toBe(true);
     expect(errResult.toErr().get()).toBe("error");
+  });
+
+  test("mapOr", () => {
+    expect(Ok<number, string>(5).mapOr(10, (x) => x * 2)).toBe(10);
+    expect(Err<number, string>("error").mapOr(10, (x) => x * 2)).toBe(10);
+  });
+
+  test("mapOrElse", () => {
+    expect(
+      Ok<number, string>(5).mapOrElse(
+        () => 10,
+        (x) => x * 2
+      )
+    ).toBe(10);
+    expect(
+      Err<number, string>("error").mapOrElse(
+        () => 10,
+        (x) => x * 2
+      )
+    ).toBe(10);
+  });
+
+  test("mapErr", () => {
+    expect(
+      Ok<number, string>(5)
+        .mapErr((e) => e.length)
+        .isOk()
+    ).toBe(true);
+    expect(
+      Err<number, string>("error")
+        .mapErr((e) => e.length)
+        .toErr()
+        .get()
+    ).toBe(5);
+  });
+
+  test("expect", () => {
+    expect(Ok(5).expect("Failed")).toBe(5);
+    expect(() => Err("error").expect("Failed")).toThrow("Failed");
+  });
+
+  test("unwrap", () => {
+    expect(Ok(5).unwrap()).toBe(5);
+    expect(() => Err("error").unwrap()).toThrow();
+  });
+
+  test("unwrapOrDefault", () => {
+    expect(Ok(5).unwrapOrDefault(10)).toBe(5);
+    expect(Err("error").unwrapOrDefault(10)).toBe(10);
+  });
+
+  test("expectErr", () => {
+    expect(Err("error").expectErr("Unexpected Ok")).toBe("error");
+    expect(() => Ok(5).expectErr("Unexpected Ok")).toThrow("Unexpected Ok");
+  });
+
+  test("unwrapErr", () => {
+    expect(Err("error").unwrapErr()).toBe("error");
+    expect(() => Ok(5).unwrapErr()).toThrow();
+  });
+
+  test("and", () => {
+    expect(Ok(5).and(Ok(10)).toOk().get()).toBe(10);
+    expect(Ok(5).and(Err<any, any>("error")).isErr()).toBe(true);
+    expect(Err("error").and(Ok(10)).isErr()).toBe(true);
+  });
+
+  test("andThen", () => {
+    expect(
+      Ok(5)
+        .andThen((x) => Ok(x * 2))
+        .toOk()
+        .get()
+    ).toBe(10);
+    expect(
+      Ok(5)
+        .andThen(() => Err<any, any>("error"))
+        .isErr()
+    ).toBe(true);
+    expect(
+      Err("error")
+        .andThen((x: any) => Ok(x * 2))
+        .isErr()
+    ).toBe(true);
+  });
+
+  test("or", () => {
+    expect(Ok(5).or(Ok(10)).toOk().get()).toBe(5);
+    expect(
+      Err("error")
+        .or(Ok(10) as any)
+        .toOk()
+        .get()
+    ).toBe(10);
+  });
+
+  test("orElse", () => {
+    expect(
+      Ok(5)
+        .orElse(() => Ok(10))
+        .toOk()
+        .get()
+    ).toBe(5);
+    expect(
+      Err("error")
+        .orElse(() => Ok(10) as any)
+        .toOk()
+        .get()
+    ).toBe(10);
+  });
+
+  test("unwrapOr", () => {
+    expect(Ok(5).unwrapOr(10)).toBe(5);
+    expect(Err("error").unwrapOr(10)).toBe(10);
+  });
+
+  test("unwrapOrElse", () => {
+    expect(Ok(5).unwrapOrElse(() => 10)).toBe(5);
+    expect(Err("error").unwrapOrElse(() => 10)).toBe(10);
+  });
+
+  test("transposeResult", () => {
+    expect(
+      transposeResult(Ok(Some(5)))
+        .get()
+        .toOk()
+        .get()
+    ).toBe(5);
+    expect(transposeResult(Ok(None())).isNone()).toBe(true);
+    expect(
+      transposeResult(Err("error") as any)
+        .get()
+        .isErr()
+    ).toBe(true);
+  });
+
+  test("flattenResult", () => {
+    expect(
+      flattenResult(Ok(Ok(5)))
+        .toOk()
+        .get()
+    ).toBe(5);
+    expect(
+      flattenResult(Ok(Err("inner error")) as any)
+        .toErr()
+        .get()
+    ).toBe("inner error");
+    expect(
+      flattenResult(Err("outer error") as any)
+        .toErr()
+        .get()
+    ).toBe("outer error");
   });
 });
