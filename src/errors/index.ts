@@ -1,3 +1,3 @@
-import ValueNotFoundError from "./notfound";
+import ValueError from "./value_error";
 
-export { ValueNotFoundError };
+export { ValueError };
