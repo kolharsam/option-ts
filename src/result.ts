@@ -220,7 +220,7 @@ export const Err = <T, U>(err: U): Result<T, U> => {
   return result;
 };
 
-export const transpose = <T, E>(
+export const transposeResult = <T, E>(
   res: Result<Option<T>, E>
 ): Option<Result<T, E>> => {
   if (res.isOk() && res.data.isNone()) {
@@ -235,7 +235,9 @@ export const transpose = <T, E>(
   return None(); // NOTE: this case will not be reached
 };
 
-export const flatten = <T, E>(res: Result<Result<T, E>, E>): Result<T, E> => {
+export const flattenResult = <T, E>(
+  res: Result<Result<T, E>, E>
+): Result<T, E> => {
   if (res.isErr()) {
     return Err(res.err);
   }
