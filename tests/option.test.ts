@@ -229,15 +229,15 @@ describe("Option", () => {
   });
 
   test("transpose", () => {
-    // expect(
-    //   transpose(Some(Ok(5)))
-    //     .unwrap()
-    //     .unwrap()
-    // ).toBe(5);
-    // expect(transpose(Some(Err("error"))).isErr()).toBe(true);
-    // expect(transpose(None<Result<number, string>>()).unwrap().isNone()).toBe(
-    //   true
-    // );
+    expect(
+      transpose(Some(Ok(5)))
+        .unwrap()
+        .unwrap()
+    ).toBe(5);
+    expect(transpose(Some(Err("error"))).isErr()).toBe(true);
+    expect(transpose(None<Result<number, string>>()).unwrap().isNone()).toBe(
+      true
+    );
 
     const transposedOk = transpose(Some(Ok(5)));
     expect(transposedOk.isOk()).toBe(true);
