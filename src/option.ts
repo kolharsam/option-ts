@@ -1,4 +1,4 @@
-import { ValueNotFoundError } from "./errors";
+import { ValueError } from "./errors";
 import { Err, Ok, Result } from "./result";
 
 type Some<T> = { ok: true; value: T };
@@ -109,14 +109,14 @@ class OptionClass<T> implements OptionFunctions<T> {
 
   expect(msg: string): T {
     if (this.isNone()) {
-      throw new ValueNotFoundError(msg);
+      throw new ValueError(msg);
     }
     return this.value;
   }
 
   unwrap(): T {
     if (this.isNone()) {
-      throw new ValueNotFoundError();
+      throw new ValueError();
     }
     return this.value;
   }
