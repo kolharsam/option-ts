@@ -21,6 +21,7 @@ interface ResultFunctions<T, U> {
   mapErr: <E>(fn: (err: U) => E) => Result<T, E>;
   expect: (msg: string) => T;
   unwrap: () => T;
+  mapOrElse<V>(def: (err: U) => V, fn: (val: T) => V): V;
   unwrapOrDefault: (def: T) => T;
   expectErr: (msg: string) => U;
   unwrapErr: () => U;
