@@ -1,14 +1,39 @@
 {
   "name": "@kolharsam/option-ts",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "an opinionated option type library for typescript, inspired by Rust's Option and Result",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kolharsam/option-ts.git"
+  },
+  "homepage": "https://github.com/kolharsam/option-ts#readme",
+  "bugs": {
+    "url": "https://github.com/kolharsam/option-ts/issues"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",
     "clean-build": "rm -rf ./dist && tsc",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "prepublishOnly": "npm run clean-build && npm test"
   },
   "keywords": [
     "option types",
