@@ -1,6 +1,6 @@
 {
   "name": "@kolharsam/option-ts",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "an opinionated option type library for typescript, inspired by Rust's Option and Result",
   "main": "dist/index.js",
   "module": "dist/index.js",
