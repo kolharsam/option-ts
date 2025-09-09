@@ -31,6 +31,7 @@ interface ResultFunctions<T, U> {
   orElse: <E>(op: (err: U) => Result<T, E>) => Result<T, E>;
   unwrapOr: (def: T) => T;
   unwrapOrElse: (op: (err: U) => T) => T;
+  match: <V>(patterns: { Ok: (value: T) => V; Err: (error: U) => V }) => V;
 }
 
 class ResultClass<T, U> implements ResultFunctions<T, U> {
@@ -204,6 +205,13 @@ class ResultClass<T, U> implements ResultFunctions<T, U> {
       return op(this.err);
     }
     return this.data;
+  }
+
+  match<V>(patterns: { Ok: (value: T) => V; Err: (error: U) => V }): V {
+    if (this.isOk()) {
+      return patterns.Ok(this.data);
+    }
+    return patterns.Err(this.err);
   }
 }
 

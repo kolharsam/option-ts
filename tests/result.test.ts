@@ -1,4 +1,12 @@
-import { Ok, Err, transposeResult, flattenResult, Some, None } from "../src";
+import {
+  Ok,
+  Err,
+  transposeResult,
+  flattenResult,
+  Some,
+  None,
+  Result,
+} from "../src";
 
 describe("Result", () => {
   test("Ok", () => {
@@ -297,5 +305,461 @@ describe("Result", () => {
         .toErr()
         .get()
     ).toBe("outer error");
+  });
+
+  test("match - Ok", () => {
+    const ok = Ok<number, string>(42);
+    const result = ok.match({
+      Ok: (value) => `Success: ${value}`,
+      Err: (error) => `Error: ${error}`,
+    });
+    expect(result).toBe("Success: 42");
+  });
+
+  test("match - Err", () => {
+    const err = Err<number, string>("Something went wrong");
+    const result = err.match({
+      Ok: (value) => `Success: ${value}`,
+      Err: (error) => `Error: ${error}`,
+    });
+    expect(result).toBe("Error: Something went wrong");
+  });
+
+  test("match - different return types", () => {
+    const ok = Ok<string, number>("hello");
+    const lengthResult = ok.match({
+      Ok: (value) => value.length,
+      Err: (error) => error,
+    });
+    expect(lengthResult).toBe(5);
+
+    const err = Err<string, number>(404);
+    const errorResult = err.match({
+      Ok: (value) => value.length,
+      Err: (error) => error,
+    });
+    expect(errorResult).toBe(404);
+  });
+
+  test("match - complex computation", () => {
+    interface ApiResponse {
+      data: string[];
+      status: number;
+    }
+
+    const successResult = Ok<ApiResponse, string>({
+      data: ["item1", "item2", "item3"],
+      status: 200,
+    });
+
+    const processedData = successResult.match({
+      Ok: (response) => response.data.map((item) => item.toUpperCase()),
+      Err: (error) => [`Error: ${error}`],
+    });
+
+    expect(processedData).toEqual(["ITEM1", "ITEM2", "ITEM3"]);
+
+    const errorResult = Err<ApiResponse, string>("Network timeout");
+    const processedError = errorResult.match({
+      Ok: (response) => response.data.map((item) => item.toUpperCase()),
+      Err: (error) => [`Error: ${error}`],
+    });
+
+    expect(processedError).toEqual(["Error: Network timeout"]);
+  });
+
+  test("match - functional composition", () => {
+    const parseNumber = (str: string): Result<number, string> => {
+      const num = parseInt(str, 10);
+      return isNaN(num) ? Err("Not a number") : Ok(num);
+    };
+
+    const processUserInput = (input: string): string => {
+      return parseNumber(input).match({
+        Ok: (num: number) =>
+          `The number is ${num}, and its square is ${num * num}`,
+        Err: (error: string) => `Invalid input: ${error}`,
+      });
+    };
+
+    expect(processUserInput("5")).toBe("The number is 5, and its square is 25");
+    expect(processUserInput("abc")).toBe("Invalid input: Not a number");
+  });
+
+  describe("async integration", () => {
+    test("async function returning Result", async () => {
+      interface User {
+        id: string;
+        name: string;
+        email: string;
+      }
+
+      const asyncFetchUser = async (
+        id: string
+      ): Promise<Result<User, string>> => {
+        // Simulate network delay
+        await new Promise((resolve) => setTimeout(resolve, 10));
+
+        if (id === "123") {
+          return Ok({ id: "123", name: "Alice", email: "alice@example.com" });
+        }
+        if (id === "404") {
+          return Err("User not found");
+        }
+        if (id === "500") {
+          return Err("Server error");
+        }
+        return Err("Invalid user ID");
+      };
+
+      const validUser = await asyncFetchUser("123");
+      expect(validUser.isOk()).toBe(true);
+      expect(validUser.unwrap().name).toBe("Alice");
+
+      const notFoundUser = await asyncFetchUser("404");
+      expect(notFoundUser.isErr()).toBe(true);
+      expect(notFoundUser.unwrapErr()).toBe("User not found");
+
+      const serverErrorUser = await asyncFetchUser("500");
+      expect(serverErrorUser.isErr()).toBe(true);
+      expect(serverErrorUser.unwrapErr()).toBe("Server error");
+    });
+
+    test("async Result with match patterns", async () => {
+      type ApiError =
+        | "NetworkError"
+        | "AuthError"
+        | "NotFound"
+        | "ValidationError";
+
+      const asyncApiCall = async (
+        endpoint: string
+      ): Promise<Result<{ data: string }, ApiError>> => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+
+        switch (endpoint) {
+          case "/success":
+            return Ok({ data: "Success response" });
+          case "/network-fail":
+            return Err("NetworkError" as ApiError);
+          case "/auth-fail":
+            return Err("AuthError" as ApiError);
+          case "/not-found":
+            return Err("NotFound" as ApiError);
+          default:
+            return Err("ValidationError" as ApiError);
+        }
+      };
+
+      const handleApiResponse = async (endpoint: string): Promise<string> => {
+        const result = await asyncApiCall(endpoint);
+        return result.match({
+          Ok: (response) => `Success: ${response.data}`,
+          Err: (error) => {
+            switch (error) {
+              case "NetworkError":
+                return "Network connection failed";
+              case "AuthError":
+                return "Authentication required";
+              case "NotFound":
+                return "Resource not found";
+              case "ValidationError":
+                return "Invalid request";
+            }
+          },
+        });
+      };
+
+      expect(await handleApiResponse("/success")).toBe(
+        "Success: Success response"
+      );
+      expect(await handleApiResponse("/network-fail")).toBe(
+        "Network connection failed"
+      );
+      expect(await handleApiResponse("/auth-fail")).toBe(
+        "Authentication required"
+      );
+      expect(await handleApiResponse("/not-found")).toBe("Resource not found");
+      expect(await handleApiResponse("/invalid")).toBe("Invalid request");
+    });
+
+    test("chaining async operations with Result", async () => {
+      interface UserProfile {
+        userId: string;
+        preferences: { theme: string; language: string };
+      }
+
+      interface UserPermissions {
+        canRead: boolean;
+        canWrite: boolean;
+        canDelete: boolean;
+      }
+
+      const asyncGetUser = async (
+        id: string
+      ): Promise<Result<{ name: string }, string>> => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        return id === "valid" ? Ok({ name: "Alice" }) : Err("User not found");
+      };
+
+      const asyncGetProfile = async (user: {
+        name: string;
+      }): Promise<Result<UserProfile, string>> => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        if (user.name === "Alice") {
+          return Ok({
+            userId: "123",
+            preferences: { theme: "dark", language: "en" },
+          });
+        }
+        return Err("Profile not found");
+      };
+
+      const asyncGetPermissions = async (
+        profile: UserProfile
+      ): Promise<Result<UserPermissions, string>> => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        return Ok({
+          canRead: true,
+          canWrite: profile.userId === "123",
+          canDelete: false,
+        } as UserPermissions);
+      };
+
+      const processUserData = async (userId: string): Promise<string> => {
+        const userResult = await asyncGetUser(userId);
+
+        if (userResult.isErr()) {
+          return `Error: ${userResult.unwrapErr()}`;
+        }
+
+        const profileResult = await asyncGetProfile(userResult.unwrap());
+        if (profileResult.isErr()) {
+          return `Error: ${profileResult.unwrapErr()}`;
+        }
+
+        const permissionsResult = await asyncGetPermissions(
+          profileResult.unwrap()
+        );
+        return permissionsResult.match({
+          Ok: (perms) =>
+            `Permissions: read=${perms.canRead}, write=${perms.canWrite}, delete=${perms.canDelete}`,
+          Err: (error) => `Error: ${error}`,
+        });
+      };
+
+      expect(await processUserData("valid")).toBe(
+        "Permissions: read=true, write=true, delete=false"
+      );
+      expect(await processUserData("invalid")).toBe("Error: User not found");
+    });
+
+    test("Promise.all with multiple Results", async () => {
+      const asyncValidateField = async (
+        field: string,
+        value: string
+      ): Promise<Result<string, string>> => {
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 10));
+
+        switch (field) {
+          case "email":
+            return value.includes("@")
+              ? Ok(value)
+              : Err("Invalid email format");
+          case "age":
+            const age = parseInt(value, 10);
+            return !isNaN(age) && age >= 0 && age <= 120
+              ? Ok(value)
+              : Err("Invalid age");
+          case "name":
+            return value.length >= 2 ? Ok(value) : Err("Name too short");
+          default:
+            return Err("Unknown field");
+        }
+      };
+
+      const validateForm = async (
+        data: Record<string, string>
+      ): Promise<Result<Record<string, string>, string[]>> => {
+        const validations = await Promise.all([
+          asyncValidateField("email", data.email),
+          asyncValidateField("age", data.age),
+          asyncValidateField("name", data.name),
+        ]);
+
+        const errors = validations
+          .filter((result) => result.isErr())
+          .map((result) => result.unwrapErr());
+
+        if (errors.length > 0) {
+          return Err(errors);
+        }
+
+        return Ok(data);
+      };
+
+      const validData = { email: "test@example.com", age: "25", name: "Alice" };
+      const validResult = await validateForm(validData);
+      expect(validResult.isOk()).toBe(true);
+
+      const invalidData = { email: "invalid", age: "200", name: "A" };
+      const invalidResult = await validateForm(invalidData);
+      expect(invalidResult.isErr()).toBe(true);
+      expect(invalidResult.unwrapErr()).toEqual([
+        "Invalid email format",
+        "Invalid age",
+        "Name too short",
+      ]);
+    });
+
+    test("async error recovery with Result", async () => {
+      interface CacheItem {
+        value: string;
+        expiry: number;
+      }
+
+      const mockCache = new Map<string, CacheItem>();
+      const mockDatabase = new Map([
+        ["user1", "Alice"],
+        ["user2", "Bob"],
+      ]);
+
+      const asyncGetFromCache = async (
+        key: string
+      ): Promise<Result<string, string>> => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        const item = mockCache.get(key);
+
+        if (!item) {
+          return Err("Cache miss");
+        }
+
+        if (Date.now() > item.expiry) {
+          mockCache.delete(key);
+          return Err("Cache expired");
+        }
+
+        return Ok(item.value);
+      };
+
+      const asyncGetFromDatabase = async (
+        key: string
+      ): Promise<Result<string, string>> => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+        const value = mockDatabase.get(key);
+        return value ? Ok(value) : Err("Not found in database");
+      };
+
+      const asyncGetWithFallback = async (
+        key: string
+      ): Promise<Result<string, string>> => {
+        const cacheResult = await asyncGetFromCache(key);
+
+        if (cacheResult.isOk()) {
+          return cacheResult;
+        }
+
+        // Fallback to database
+        const dbResult = await asyncGetFromDatabase(key);
+
+        if (dbResult.isOk()) {
+          // Cache the result for future requests
+          mockCache.set(key, {
+            value: dbResult.unwrap(),
+            expiry: Date.now() + 60000, // 1 minute
+          });
+        }
+
+        return dbResult;
+      };
+
+      // Test cache miss -> database hit
+      const result1 = await asyncGetWithFallback("user1");
+      expect(result1.isOk()).toBe(true);
+      expect(result1.unwrap()).toBe("Alice");
+
+      // Test cache hit (should be faster)
+      const result2 = await asyncGetWithFallback("user1");
+      expect(result2.isOk()).toBe(true);
+      expect(result2.unwrap()).toBe("Alice");
+
+      // Test not found anywhere
+      const result3 = await asyncGetWithFallback("user999");
+      expect(result3.isErr()).toBe(true);
+      expect(result3.unwrapErr()).toBe("Not found in database");
+    });
+
+    test("async Result with complex error types", async () => {
+      interface ValidationError {
+        field: string;
+        message: string;
+      }
+
+      interface NetworkError {
+        code: number;
+        message: string;
+      }
+
+      type ApiError = ValidationError | NetworkError;
+
+      const asyncValidateAndSubmit = async (data: {
+        email: string;
+      }): Promise<Result<{ id: string }, ApiError>> => {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+
+        // Validation phase
+        if (!data.email.includes("@")) {
+          return Err({
+            field: "email",
+            message: "Invalid email format",
+          } as ApiError);
+        }
+
+        // Network simulation
+        if (data.email === "timeout@example.com") {
+          return Err({
+            code: 408,
+            message: "Request timeout",
+          } as ApiError);
+        }
+
+        if (data.email === "server@example.com") {
+          return Err({
+            code: 500,
+            message: "Internal server error",
+          } as ApiError);
+        }
+
+        return Ok({ id: "12345" });
+      };
+
+      const handleSubmission = async (email: string): Promise<string> => {
+        const result = await asyncValidateAndSubmit({ email });
+
+        return result.match({
+          Ok: (response) => `Successfully created with ID: ${response.id}`,
+          Err: (error) => {
+            if ("field" in error) {
+              return `Validation error in ${error.field}: ${error.message}`;
+            } else {
+              return `Network error ${error.code}: ${error.message}`;
+            }
+          },
+        });
+      };
+
+      expect(await handleSubmission("valid@example.com")).toBe(
+        "Successfully created with ID: 12345"
+      );
+      expect(await handleSubmission("invalid")).toBe(
+        "Validation error in email: Invalid email format"
+      );
+      expect(await handleSubmission("timeout@example.com")).toBe(
+        "Network error 408: Request timeout"
+      );
+      expect(await handleSubmission("server@example.com")).toBe(
+        "Network error 500: Internal server error"
+      );
+    });
   });
 });

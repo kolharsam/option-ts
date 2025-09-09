@@ -35,6 +35,7 @@ interface OptionFunctions<T> {
     other: Option<U>,
     fn: (current: T, other: U) => V
   ) => Option<V>;
+  match: <U>(patterns: { Some: (value: T) => U; None: () => U }) => U;
 }
 
 class OptionClass<T> implements OptionFunctions<T> {
@@ -213,6 +214,13 @@ class OptionClass<T> implements OptionFunctions<T> {
       return None();
     }
     return Some(fn(this.value, other.value));
+  }
+
+  match<U>(patterns: { Some: (value: T) => U; None: () => U }): U {
+    if (this.isSome()) {
+      return patterns.Some(this.value);
+    }
+    return patterns.None();
   }
 }
 
