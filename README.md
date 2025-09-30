@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/kolharsam/option-ts)
+
 # option-ts
 
 This library provides Rust-inspired `Option` and `Result` types for TypeScript, enabling more robust error handling and null safety in your TypeScript projects.
