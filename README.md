@@ -1,4 +1,5 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/kolharsam/option-ts)
+[![build & test job](https://github.com/kolharsam/option-ts/actions/workflows/node.js.yml/badge.svg?branch=main)](https://github.com/kolharsam/option-ts/actions/workflows/node.js.yml)
 
 # option-ts
 
